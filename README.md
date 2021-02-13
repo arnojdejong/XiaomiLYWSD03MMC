@@ -4,13 +4,14 @@ Simple python program to publish custom Xiaomi LYWSD03MMC advertisments(https://
 Works on Raspberry Pi
 
 ## start application
+```
 virtualenv -p python3 venv
 source venv/bin/activate
 pip install -r requirements.txt
 deactivate
 
 sudo ./run
-
+```
 ### device_list.py
 contains all devices to publish
 - key: device.address in lower case seperated by :
