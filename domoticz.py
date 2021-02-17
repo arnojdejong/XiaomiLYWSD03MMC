@@ -5,8 +5,7 @@ from requests import HTTPError
 
 from device_list import devices
 
-url = "http://domoticz.erniesplace.local:8080/json.htm"
-param = "type=command&param=udevice&idx=IDX&nvalue=0&svalue=TEMP;HUM;HUM_STAT;BAR;BAR_FOR&rssi=RSSI"
+url = "http://127.0.0.1:8080/json.htm"
 
 
 def send(device, values):
@@ -22,15 +21,16 @@ def send(device, values):
         hum_stat = 3
 
     payload = {
-        "command": "udevice",
+        "type": "command",
+        "param": "udevice",
         "idx": devices[values.address]["idx"],
         "nvalue": 0,
-        "svalue": str(values.temperature) + ";" + str(values.humidity) + ";" + str(hum_stat),
-        "rssi": device.rssi
+        "svalue": str(values.temperature) + ";" + str(values.humidity) + ";" + str(hum_stat)
     }
 
     try:
         response = requests.get(url, params=payload)
+        print(response.url)
 
         # If the response was successful, no Exception will be raised
         response.raise_for_status()
