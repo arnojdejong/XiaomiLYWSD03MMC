@@ -38,15 +38,15 @@ devices = {
     },
 
     "a4:c1:38:14:70:83": {
-        "name": "nieuw 2de",
+        "name": "Logeerkamer 2de",
         "idx": 9
     },
     "a4:c1:38:ed:a7:c0": {
-        "name": "nieuw 2de",
+        "name": "Berging 2de",
         "idx": 10
     },
     "a4:c1:38:b1:3e:3d": {
-        "name": "nieuw 2de",
+        "name": "Washok 2de",
         "idx": 11
     },
 
