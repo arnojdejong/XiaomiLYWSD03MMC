@@ -20,7 +20,7 @@ def simple_callback(device: BLEDevice, advertisement_data: AdvertisementData):
         service_data = advertisement_data.service_data[XIAOMI_LYWSD03MMC_PROFILE_CUSTOM]
         values = XiaomiLYWSD03MMC()
         values.address = ':'.join('{:02x}'.format(x) for x in service_data[0:6])
-        values.temperature = float(int.from_bytes(service_data[6:8], byteorder='big'))/10
+        values.temperature = float(int.from_bytes(service_data[6:8], byteorder='big', signed=True))/10
         values.humidity = service_data[8]
         values.battery_level = service_data[9]
         values.battery_voltage = int.from_bytes(service_data[10:12], byteorder='big')
