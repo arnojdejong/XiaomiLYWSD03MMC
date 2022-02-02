@@ -6,7 +6,8 @@ from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
 from bleak.backends.scanner import AdvertisementData
 
-import node_red
+import home_assistant
+# import node_red
 from XiaomiLYWSD03MMC import XiaomiLYWSD03MMC
 from XiaomiLYWSD03MMC import XIAOMI_LYWSD03MMC_PROFILE_CUSTOM
 from device_list import devices
@@ -19,18 +20,16 @@ def simple_callback(device: BLEDevice, advertisement_data: AdvertisementData):
     if XIAOMI_LYWSD03MMC_PROFILE_CUSTOM in advertisement_data.service_data:
         service_data = advertisement_data.service_data[XIAOMI_LYWSD03MMC_PROFILE_CUSTOM]
         values = XiaomiLYWSD03MMC()
-        values.address = ':'.join('{:02x}'.format(x) for x in service_data[0:6])
+        values.address = service_data[0:6]
+        values.address_str = ':'.join('{:02x}'.format(x) for x in service_data[0:6])
         values.temperature = float(int.from_bytes(service_data[6:8], byteorder='big', signed=True))/10
         values.humidity = service_data[8]
         values.battery_level = service_data[9]
         values.battery_voltage = int.from_bytes(service_data[10:12], byteorder='big')
         values.frame = service_data[12]
 
-        if values.address not in devices:
-            return
-
         send = False
-        track = keeping_track.get(values.address)
+        track = keeping_track.get(values.address_str)
         if track:
             if values.frame != track.frame:
                 send = True
@@ -38,13 +37,14 @@ def simple_callback(device: BLEDevice, advertisement_data: AdvertisementData):
             send = True
 
         if send:
-            keeping_track[values.address] = values
+            keeping_track[values.address_str] = values
             print(device.address,
-                  devices[values.address]["name"],
+                  devices[values.address_str]["name"],
                   "keeping_track: %d" % len(keeping_track)
                   )
-            node_red.send(device, values)
+            # node_red.send(device, values)
             # domoticz.send(device, values)
+            home_assistant.send(device, values)
 
 
 async def run():
@@ -56,6 +56,6 @@ async def run():
         await asyncio.sleep(5.0)
         await scanner.stop()
 
-
-loop = asyncio.get_event_loop()
-loop.run_until_complete(run())
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())

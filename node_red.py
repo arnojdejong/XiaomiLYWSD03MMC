@@ -12,13 +12,17 @@ print("creating new instance")
 client = mqtt.Client("PyXiaomiBLE")  # create new instance
 print("connecting to broker")
 client.connect(broker_address)  # connect to broker
+print("connected to broker")
+client.loop_start()
 
 
 def send(device, values):
+    address = ':'.join('{:02x}'.format(x) for x in values.address)
+
     payload = {
         "type": "Xiaomi LYWSD03MMC",
         "location": devices[values.address]["name"],
-        "address": values.address,
+        "address": address,
         "temperature_celcius": values.temperature,
         "humidity": values.humidity,
         "battery_level": values.battery_level,

@@ -9,6 +9,10 @@ url = "http://127.0.0.1:8080/json.htm"
 
 
 def send(device, values):
+    address = ':'.join('{:02x}'.format(x) for x in values.address)
+    if address not in devices:
+        return
+
     hum = values.humidity
     hum_stat = 0
     if hum < 30:
@@ -23,7 +27,7 @@ def send(device, values):
     payload = {
         "type": "command",
         "param": "udevice",
-        "idx": devices[values.address]["idx"],
+        "idx": devices[address]["idx"],
         "nvalue": 0,
         "svalue": str(values.temperature) + ";" + str(values.humidity) + ";" + str(hum_stat)
     }
