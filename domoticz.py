@@ -1,14 +1,30 @@
-from pprint import pprint
-
 import requests
 from requests import HTTPError
 
 from device_list import devices
 
-url = "http://127.0.0.1:8080/json.htm"
+url = None
+
+
+def init(config):
+    global url
+
+    if not config:
+        return
+
+    do_config = config.get('domoticz')
+    if not do_config:
+        return
+
+    url = do_config.get('domoticz')
+    if not url:
+        return
 
 
 def send(device, values):
+    if not url:
+        return
+
     address = ':'.join('{:02x}'.format(x) for x in values.address)
     if address not in devices:
         return

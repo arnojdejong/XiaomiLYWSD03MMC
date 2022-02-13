@@ -1,13 +1,13 @@
 import asyncio
-
-import domoticz
+import json
 
 from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
 from bleak.backends.scanner import AdvertisementData
 
 import home_assistant
-# import node_red
+import node_red
+import domoticz
 from XiaomiLYWSD03MMC import XiaomiLYWSD03MMC
 from XiaomiLYWSD03MMC import XIAOMI_LYWSD03MMC_PROFILE_CUSTOM
 from device_list import devices
@@ -38,13 +38,17 @@ def simple_callback(device: BLEDevice, advertisement_data: AdvertisementData):
 
         if send:
             keeping_track[values.address_str] = values
-            print(device.address,
-                  devices[values.address_str]["name"],
-                  "keeping_track: %d" % len(keeping_track)
-                  )
-            # node_red.send(device, values)
-            # domoticz.send(device, values)
-            home_assistant.send(device, values)
+
+            text = '"{}", "{}",  frame: {}'.format(
+                device.address,
+                devices.get(values.address_str, {}).get('name', ''),
+                values.frame
+            )
+            print(text)
+
+            node_red.send(device, values)
+            domoticz.send(device, values)
+            home_assistant.send(values)
 
 
 async def run():
@@ -57,5 +61,15 @@ async def run():
         await scanner.stop()
 
 if __name__ == '__main__':
+    config = None
+    config_file = 'config.json'
+    with open(config_file) as data_file:
+        config = json.loads(data_file.read())
+        data_file.close()
+
+    node_red.init(config)
+    home_assistant.init(config)
+    domoticz.init(config)
+
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())

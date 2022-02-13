@@ -1,21 +1,35 @@
 import json
 
-import paho.mqtt.client as mqtt  # import the client1
+import paho.mqtt.client as mqtt
 
-# topic = "test/in"
-
-broker_address = "homeassistant"
-# broker_address="iot.eclipse.org"
-print("creating new instance")
-client = mqtt.Client("PyXiaomiBLE")  # create new instance
-client.username_pw_set('sensor', 'sensor')
-print("connecting to broker")
-client.connect(broker_address)  # connect to broker
-print("connected to broker")
-client.loop_start()
+print("ha: creating new instance")
+client = mqtt.Client()  # create new instance
 
 
-def send_mqtt_temperature_discovery_msg(state_topic, address, values):
+def init(config):
+    if not config:
+        return
+
+    ha_config = config.get('home_assistant')
+    if not ha_config:
+        return
+
+    broker_address = ha_config.get('broker_address')
+    if not broker_address:
+        return
+
+    username = ha_config.get('broker_username')
+    password = ha_config.get('broker_password')
+    if username:
+        client.username_pw_set(username, password)
+
+    print("ha: connecting to broker")
+    client.connect(broker_address)  # connect to broker
+    print("ha: connected to broker")
+    client.loop_start()
+
+
+def send_mqtt_temperature_discovery_msg(state_topic, address):
     discovery_topic = "homeassistant/sensor/xiaomi_lywsd03mmc_" + address + "/temperature/config"
     payload = {
         'name': 'xiaomi lywsd03mmc ' + address + ' temperature',
@@ -30,7 +44,7 @@ def send_mqtt_temperature_discovery_msg(state_topic, address, values):
     client.publish(discovery_topic, json.dumps(payload).encode())
 
 
-def send_mqtt_humidity_discovery_msg(state_topic, address, values):
+def send_mqtt_humidity_discovery_msg(state_topic, address):
     discovery_topic = "homeassistant/sensor/xiaomi_lywsd03mmc_" + address + "/humidity/config"
     payload = {
         'name': 'xiaomi lywsd03mmc ' + address + ' humidity',
@@ -45,7 +59,7 @@ def send_mqtt_humidity_discovery_msg(state_topic, address, values):
     client.publish(discovery_topic, json.dumps(payload).encode())
 
 
-def send_mqtt_battery_discovery_msg(state_topic, address, values):
+def send_mqtt_battery_discovery_msg(state_topic, address):
     discovery_topic = "homeassistant/sensor/xiaomi_lywsd03mmc_" + address + "/battery/config"
     payload = {
         'name': 'xiaomi lywsd03mmc ' + address + ' battery',
@@ -60,7 +74,7 @@ def send_mqtt_battery_discovery_msg(state_topic, address, values):
     client.publish(discovery_topic, json.dumps(payload).encode())
 
 
-def send_mqtt_sensor_state_msg(state_topic, address, values):
+def send_mqtt_sensor_state_msg(state_topic, values):
     payload = {
         'temperature': str(values.temperature),
         'humidity': str(values.humidity),
@@ -69,13 +83,12 @@ def send_mqtt_sensor_state_msg(state_topic, address, values):
     client.publish(state_topic, json.dumps(payload).encode())
 
 
-def send(device, values):
+def send(values):
     address = ''.join('{:02x}'.format(x) for x in values.address)
     state_topic = "xiaomi/lywsd03mmc/" + address + "/state"
 
-    send_mqtt_temperature_discovery_msg(state_topic, address, values)
-    send_mqtt_humidity_discovery_msg(state_topic, address, values)
-    send_mqtt_battery_discovery_msg(state_topic, address, values)
-    send_mqtt_battery_discovery_msg(state_topic, address, values)
+    send_mqtt_temperature_discovery_msg(state_topic, address)
+    send_mqtt_humidity_discovery_msg(state_topic, address)
+    send_mqtt_battery_discovery_msg(state_topic, address)
 
-    send_mqtt_sensor_state_msg(state_topic, address, values)
+    send_mqtt_sensor_state_msg(state_topic, values)
