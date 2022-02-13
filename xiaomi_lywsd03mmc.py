@@ -5,15 +5,17 @@ from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
 from bleak.backends.scanner import AdvertisementData
 
-import home_assistant
-import node_red
-import domoticz
 from XiaomiLYWSD03MMC import XiaomiLYWSD03MMC
 from XiaomiLYWSD03MMC import XIAOMI_LYWSD03MMC_PROFILE_CUSTOM
 from device_list import devices
-
+from domoticz import Domoticz
+from home_assistant import HomeAssistant
+from node_red import NodeRed
 
 keeping_track = {}
+home_assistant = HomeAssistant()
+node_red = NodeRed()
+domoticz = Domoticz()
 
 
 def simple_callback(device: BLEDevice, advertisement_data: AdvertisementData):
@@ -78,6 +80,10 @@ if __name__ == '__main__':
     node_red.init(config)
     home_assistant.init(config)
     domoticz.init(config)
+
+    node_red.start()
+    home_assistant.start()
+    domoticz.start()
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())

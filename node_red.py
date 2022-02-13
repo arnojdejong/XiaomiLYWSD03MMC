@@ -6,56 +6,67 @@ from device_list import devices
 
 topic = None
 
-print("nr: creating new instance")
-client = mqtt.Client()  # create new instance
 
+class NodeRed:
+    def __init__(self):
+        self.client = None
+        self.broker_address = None
+        self.username = None
+        self.password = None
+        self.topic = None
 
-def init(config):
-    global topic
+    def init(self, config):
+        if not config:
+            return
 
-    if not config:
-        return
+        nr_config = config.get('node_red')
+        if not nr_config:
+            return
 
-    nr_config = config.get('node_red')
-    if not nr_config:
-        return
+        print("nr: creating new instance")
+        self.client = mqtt.Client()  # create new instance
 
-    broker_address = nr_config.get('broker_address')
-    if not broker_address:
-        return
-    topic = nr_config.get('topic')
-    if not broker_address:
-        return
+        self.broker_address = nr_config.get('broker_address')
+        if not self.broker_address:
+            return
 
-    username = nr_config.get('broker_username')
-    password = nr_config.get('broker_password')
-    if username:
-        client.username_pw_set(username, password)
+        self.topic = nr_config.get('topic')
+        if not self.broker_address:
+            return
 
-    print("nr: connecting to broker")
-    client.connect(broker_address)
-    print("nr: connected to broker")
-    client.loop_start()
+        self.username = nr_config.get('broker_username')
+        self.password = nr_config.get('broker_password')
+        if self.username:
+            self.client.username_pw_set(self.username, self.password)
 
+    def start(self):
+        print("nr: start")
+        if not self.broker_address:
+            return
 
-def send(device, values):
-    if not topic:
-        return
+        print("nr: connecting to broker")
+        self.client.connect(self.broker_address)
+        print("nr: connected to broker")
+        self.client.loop_start()
 
-    address = ':'.join('{:02x}'.format(x) for x in values.address)
+    def send(self, device, values):
+        if not topic:
+            return
 
-    payload = {
-        "type": "Xiaomi LYWSD03MMC",
-        "location": devices[values.address]["name"],
-        "address": address,
-        "temperature_celcius": values.temperature,
-        "humidity": values.humidity,
-        "battery_level": values.battery_level,
-        "battery_voltage": values.battery_voltage,
-        "frame_count": values.frame,
-        "rssi": device.rssi
-    }
-    pprint(payload)
-    print("Publishing message to topic", topic)
-    client.publish(topic, json.dumps(payload).encode())
+        address = ':'.join('{:02x}'.format(x) for x in values.address)
+
+        payload = {
+            "type": "Xiaomi LYWSD03MMC",
+            "location": devices[values.address]["name"],
+            "address": address,
+            "temperature_celcius": values.temperature,
+            "humidity": values.humidity,
+            "battery_level": values.battery_level,
+            "battery_voltage": values.battery_voltage,
+            "frame_count": values.frame,
+            "rssi": device.rssi
+        }
+        pprint(payload)
+        print("Publishing message to topic", topic)
+        self.client.publish(topic, json.dumps(payload).encode())
 
