@@ -1,9 +1,9 @@
 {
-  "#domoticz": {
+  "domoticz": {
     "url": "http://127.0.0.1:8080/json.htm"
   },
-  "#node_red": {
-    "broker_address": "station",
+  "node_red": {
+    "broker_address": "homeassistant",
     "broker_username": "sensor",
     "broker_password": "sensor",
     "topic": "test/in"

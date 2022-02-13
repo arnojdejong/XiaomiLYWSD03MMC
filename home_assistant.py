@@ -1,5 +1,9 @@
 import json
+import logging
+
 import paho.mqtt.client as mqtt
+
+logger = logging.getLogger(__name__)
 
 
 class HomeAssistant:
@@ -10,11 +14,16 @@ class HomeAssistant:
         self.password = None
 
     def init(self, config):
+        logger.debug('init')
+
+        if not config:
+            return
+
         ha_config = config.get('home_assistant')
         if not ha_config:
             return
 
-        print("ha: creating new instance")
+        logging.debug("ha: creating new instance")
         self.client = mqtt.Client()
 
         self.broker_address = ha_config.get('broker_address')
@@ -27,14 +36,18 @@ class HomeAssistant:
             self.client.username_pw_set(self.username, self.password)
 
     def start(self):
-        print("ha: start")
+        logger.debug('start')
+
         if not self.broker_address:
             return
 
-        print("ha: connecting to broker")
-        self.client.connect(self.broker_address)  # connect to broker
-        print("ha: connected to broker")
-        self.client.loop_start()
+        try:
+            logging.debug("ha: connecting to broker")
+            self.client.connect(self.broker_address)  # connect to broker
+            logging.debug("ha: connected to broker")
+            self.client.loop_start()
+        except Exception as err:
+            logging.exception('error occurred')
 
     def send_mqtt_temperature_discovery_msg(self, state_topic, address):
         discovery_topic = "homeassistant/sensor/xiaomi_lywsd03mmc_" + address + "/temperature/config"
@@ -48,7 +61,7 @@ class HomeAssistant:
             'force_update': True,
             'expire_after': 120
         }
-        self.client.publish(discovery_topic, json.dumps(payload).encode())
+        self._publish(discovery_topic, json.dumps(payload).encode())
 
     def send_mqtt_humidity_discovery_msg(self, state_topic, address):
         discovery_topic = "homeassistant/sensor/xiaomi_lywsd03mmc_" + address + "/humidity/config"
@@ -62,7 +75,7 @@ class HomeAssistant:
             'force_update': True,
             'expire_after': 120
         }
-        self.client.publish(discovery_topic, json.dumps(payload).encode())
+        self._publish(discovery_topic, json.dumps(payload).encode())
 
     def send_mqtt_battery_discovery_msg(self, state_topic, address):
         discovery_topic = "homeassistant/sensor/xiaomi_lywsd03mmc_" + address + "/battery/config"
@@ -76,7 +89,7 @@ class HomeAssistant:
             'force_update': True,
             'expire_after': 120
         }
-        self.client.publish(discovery_topic, json.dumps(payload).encode())
+        self._publish(discovery_topic, json.dumps(payload).encode())
 
     def send_mqtt_sensor_state_msg(self, state_topic, values):
         payload = {
@@ -84,7 +97,7 @@ class HomeAssistant:
             'humidity': str(values.humidity),
             'battery': str(values.battery_level)
         }
-        self.client.publish(state_topic, json.dumps(payload).encode())
+        self._publish(state_topic, json.dumps(payload).encode())
 
     def send(self, values):
         address = ''.join('{:02x}'.format(x) for x in values.address)
@@ -95,3 +108,10 @@ class HomeAssistant:
         self.send_mqtt_battery_discovery_msg(state_topic, address)
 
         self.send_mqtt_sensor_state_msg(state_topic, values)
+
+    def _publish(self, topic, data):
+        try:
+            logger.debug('publish: {}'.format(topic))
+            self.client.publish(topic, data)
+        except Exception as err:
+            logger.exception('error occurred')

@@ -1,5 +1,7 @@
 import asyncio
 import json
+import logging
+from logging.handlers import RotatingFileHandler
 
 from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
@@ -46,11 +48,11 @@ def simple_callback(device: BLEDevice, advertisement_data: AdvertisementData):
                 devices.get(values.address_str, {}).get('name', ''),
                 values.frame
             )
-            print(text)
+            logging.debug(text)
 
-            node_red.send(device, values)
             domoticz.send(device, values)
             home_assistant.send(values)
+            node_red.send(device, values)
 
 
 async def run():
@@ -63,27 +65,57 @@ async def run():
         await scanner.stop()
 
 if __name__ == '__main__':
+    rootLogger = logging.getLogger()
+
+    log_path = "logs/logfile"
+    logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(consoleHandler)
+    rootLogger.setLevel(logging.DEBUG)  # temp to catch output when reading settings file
+
+    timedHandler = RotatingFileHandler(log_path, maxBytes=30*1024*1024, backupCount=10)
+    timedHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(timedHandler)
+
+    logging.getLogger('bleak').propagate = False
+    logging.getLogger("bleak").setLevel(logging.CRITICAL)
+
+    logging.debug("read config files")
     config = None
     config_file = 'config/config.json'
-    with open(config_file) as data_file:
-        config = json.loads(data_file.read())
-        data_file.close()
+    try:
+        with open(config_file) as data_file:
+            config = json.loads(data_file.read())
+            data_file.close()
+    except:
+        logging.exception('config.json')
 
     _devices = {}
     devices_file = 'config/devices.json'
-    with open(devices_file) as data_file:
-        _devices = json.loads(data_file.read())
-        data_file.close()
+    try:
+        with open(devices_file) as data_file:
+            _devices = json.loads(data_file.read())
+            data_file.close()
+    except:
+        logging.exception('devices.json')
 
-    devices = _devices
-
-    node_red.init(config)
+    logging.debug("init connectors")
+    node_red.init(config, _devices)
     home_assistant.init(config)
-    domoticz.init(config)
+    domoticz.init(config, _devices)
 
+    logging.debug("start connectors")
     node_red.start()
     home_assistant.start()
     domoticz.start()
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
+    logging.debug("loop forever")
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(run())
+    except:
+        logging.exception('loop forever')
+
+    logging.debug("exit")

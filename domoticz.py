@@ -1,33 +1,41 @@
+import logging
 import requests
-from requests import HTTPError
-from device_list import devices
+
+logger = logging.getLogger(__name__)
 
 
 class Domoticz:
     def __init__(self):
         self.url = None
+        self.devices = None
 
-    def init(self, config):
+    def init(self, config, devices):
+        logger.debug('init')
         if not config:
             return
+        if not devices:
+            return
+
+        self.devices = devices
 
         do_config = config.get('domoticz')
         if not do_config:
             return
 
-        self.url = do_config.get('domoticz')
+        self.url = do_config.get('url')
         if not self.url:
             return
 
     def start(self):
-        print("do: start")
+        logger.debug('start')
 
     def send(self, device, values):
         if not self.url:
             return
 
         address = ':'.join('{:02x}'.format(x) for x in values.address)
-        if address not in devices:
+        if address not in self.devices:
+            logger.debug('{} not in device_list'.format(address))
             return
 
         hum = values.humidity
@@ -44,20 +52,16 @@ class Domoticz:
         payload = {
             "type": "command",
             "param": "udevice",
-            "idx": devices[address]["idx"],
+            "idx": self.devices[address]["idx"],
             "nvalue": 0,
             "svalue": str(values.temperature) + ";" + str(values.humidity) + ";" + str(hum_stat)
         }
 
         try:
             response = requests.get(self.url, params=payload)
-            print(response.url)
+            logger.debug(response.url)
 
             # If the response was successful, no Exception will be raised
             response.raise_for_status()
-        except HTTPError as http_err:
-            print(f'HTTP error occurred: {http_err}')  # Python 3.6
         except Exception as err:
-            print(f'Other error occurred: {err}')  # Python 3.6
-        else:
-            print('Success!')
+            logger.exception('error occurred')
