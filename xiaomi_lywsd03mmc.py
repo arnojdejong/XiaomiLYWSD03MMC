@@ -67,6 +67,14 @@ if __name__ == '__main__':
         config = json.loads(data_file.read())
         data_file.close()
 
+    _devices = {}
+    devices_file = 'devices.json'
+    with open(devices_file) as data_file:
+        _devices = json.loads(data_file.read())
+        data_file.close()
+
+    devices = _devices
+
     node_red.init(config)
     home_assistant.init(config)
     domoticz.init(config)
