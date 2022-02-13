@@ -62,13 +62,13 @@ async def run():
 
 if __name__ == '__main__':
     config = None
-    config_file = 'config.json'
+    config_file = 'config/config.json'
     with open(config_file) as data_file:
         config = json.loads(data_file.read())
         data_file.close()
 
     _devices = {}
-    devices_file = 'devices.json'
+    devices_file = 'config/devices.json'
     with open(devices_file) as data_file:
         _devices = json.loads(data_file.read())
         data_file.close()
