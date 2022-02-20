@@ -42,9 +42,8 @@ def simple_callback(device: BLEDevice, advertisement_data: AdvertisementData):
         if send:
             keeping_track[values.address_str] = values
 
-            text = '"{}", "{}",  frame: {}'.format(
+            text = '"{}", frame: {}'.format(
                 device.address,
-                devices.get(values.address_str, {}).get('name', ''),
                 values.frame
             )
             logging.debug(text)
