@@ -9,7 +9,6 @@ from bleak.backends.scanner import AdvertisementData
 
 from XiaomiLYWSD03MMC import XiaomiLYWSD03MMC
 from XiaomiLYWSD03MMC import XIAOMI_LYWSD03MMC_PROFILE_CUSTOM
-from device_list import devices
 from domoticz import Domoticz
 from home_assistant import HomeAssistant
 from node_red import NodeRed
