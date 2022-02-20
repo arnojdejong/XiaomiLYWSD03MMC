@@ -3,7 +3,7 @@ Description=Xiaomi LYWSD03MMC service
 
 [Service]
 WorkingDirectory=/usr/local/XiaomiLYWSD03MMC
-ExecStart=/bin/bash -c “/usr/local/XiaomiLYWSD03MMC/venv/bin/python xiaomi_lywsd03mmc.py”
+ExecStart=/bin/bash -c "/usr/local/XiaomiLYWSD03MMC/venv/bin/python xiaomi_lywsd03mmc.py"
 User=pi
 
 [Install]
