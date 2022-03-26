@@ -71,7 +71,6 @@ if __name__ == '__main__':
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(logFormatter)
     rootLogger.addHandler(consoleHandler)
-    rootLogger.setLevel(logging.DEBUG)  # temp to catch output when reading settings file
 
     timedHandler = RotatingFileHandler(log_path, maxBytes=30*1024*1024, backupCount=10)
     timedHandler.setFormatter(logFormatter)
@@ -79,6 +78,8 @@ if __name__ == '__main__':
 
     logging.getLogger('bleak').propagate = False
     logging.getLogger("bleak").setLevel(logging.CRITICAL)
+
+    rootLogger.setLevel(logging.DEBUG)  # temp to catch output when reading settings file
 
     logging.debug("read config files")
     config = None

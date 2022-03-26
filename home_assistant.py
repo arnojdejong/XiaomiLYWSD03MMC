@@ -13,6 +13,8 @@ class HomeAssistant:
         self.username = None
         self.password = None
 
+        self.initialized = []
+
     def init(self, config):
         logger.debug('init')
 
@@ -43,11 +45,34 @@ class HomeAssistant:
 
         try:
             logging.debug("ha: connecting to broker")
+            # self.client.on_log = self.on_log
+            self.client.on_connect = self.on_connect
+            self.client.on_disconnect = self.on_disconnect
+            self.client.on_message = self.on_message
+
             self.client.connect(self.broker_address)  # connect to broker
-            logging.debug("ha: connected to broker")
-            self.client.loop_start()
         except Exception as err:
             logging.exception('error occurred')
+
+        self.client.loop_start()
+
+    def on_log(self, client, userdata, level, buf):
+        logging.debug(buf)
+
+    def on_connect(self, client, userdata, flags, rc):
+        logging.debug("Connected with result code: "+str(rc))
+        self.initialized = []
+
+    def on_disconnect(self, client, userdata, rc):
+        logging.debug("Disconnected with result code: "+str(rc))
+        if rc != 0:
+            logging.error("Unexpected disconnection: "+str(rc))
+
+    def on_message(self, client, userdata, message):
+        logging.debug("message received ", str(message.payload.decode("utf-8")))
+        logging.debug("message topic=", message.topic)
+        logging.debug("message qos=", message.qos)
+        logging.debug("message retain flag=", message.retain)
 
     def send_mqtt_temperature_discovery_msg(self, state_topic, address):
         discovery_topic = "homeassistant/sensor/xiaomi_lywsd03mmc_" + address + "/temperature/config"
@@ -103,15 +128,18 @@ class HomeAssistant:
         address = ''.join('{:02x}'.format(x) for x in values.address)
         state_topic = "xiaomi/lywsd03mmc/" + address + "/state"
 
-        self.send_mqtt_temperature_discovery_msg(state_topic, address)
-        self.send_mqtt_humidity_discovery_msg(state_topic, address)
-        self.send_mqtt_battery_discovery_msg(state_topic, address)
+        if address not in self.initialized:
+            self.send_mqtt_temperature_discovery_msg(state_topic, address)
+            self.send_mqtt_humidity_discovery_msg(state_topic, address)
+            self.send_mqtt_battery_discovery_msg(state_topic, address)
+            self.initialized.append(address)
 
         self.send_mqtt_sensor_state_msg(state_topic, values)
 
     def _publish(self, topic, data):
         try:
             logger.debug('publish: {}'.format(topic))
-            self.client.publish(topic, data)
+            info = self.client.publish(topic, data)
+            # logger.debug(info)
         except Exception as err:
             logger.exception('error occurred')
