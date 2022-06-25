@@ -50,6 +50,7 @@ class HomeAssistant:
             self.client.on_disconnect = self.on_disconnect
             self.client.on_message = self.on_message
 
+            self.client.subscribe("homeassistant/status")
             self.client.connect(self.broker_address)  # connect to broker
         except Exception as err:
             logging.exception('error occurred')
@@ -73,6 +74,14 @@ class HomeAssistant:
         logging.debug("message topic=", message.topic)
         logging.debug("message qos=", message.qos)
         logging.debug("message retain flag=", message.retain)
+
+        if message.topic == 'homeassistant/status':
+            if message.payload == 'online':
+                logging.debug("homeassistant online")
+                self.initialized.clear()
+
+            if message.payload == 'offline':
+                logging.debug("homeassistant online")
 
     def send_mqtt_temperature_discovery_msg(self, state_topic, address):
         discovery_topic = "homeassistant/sensor/xiaomi_lywsd03mmc_" + address + "/temperature/config"
