@@ -77,11 +77,12 @@ class HomeAssistant:
         logging.debug("message retain flag=%s", message.retain)
 
         if message.topic == 'homeassistant/status':
-            if message.payload == 'online':
+            payload = str(message.payload.decode("utf-8"))
+            if payload == 'online':
                 logging.debug("homeassistant online")
                 self.initialized.clear()
 
-            if message.payload == 'offline':
+            if payload == 'offline':
                 logging.debug("homeassistant online")
 
     def send_mqtt_temperature_discovery_msg(self, state_topic, address):
