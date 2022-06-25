@@ -84,7 +84,7 @@ class HomeAssistant:
                 self.initialized.clear()
 
             if payload == 'offline':
-                logging.debug("homeassistant online")
+                logging.debug("homeassistant offline")
 
     def send_mqtt_temperature_discovery_msg(self, state_topic, address):
         discovery_topic = "homeassistant/sensor/xiaomi_lywsd03mmc_" + address + "/temperature/config"
