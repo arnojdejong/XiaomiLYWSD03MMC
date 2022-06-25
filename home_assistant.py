@@ -50,7 +50,6 @@ class HomeAssistant:
             self.client.on_disconnect = self.on_disconnect
             self.client.on_message = self.on_message
 
-            self.client.subscribe("homeassistant/status")
             self.client.connect(self.broker_address)  # connect to broker
         except Exception as err:
             logging.exception('error occurred')
@@ -62,6 +61,8 @@ class HomeAssistant:
 
     def on_connect(self, client, userdata, flags, rc):
         logging.debug("Connected with result code: "+str(rc))
+        self.client.subscribe("homeassistant/status")
+
         self.initialized = []
 
     def on_disconnect(self, client, userdata, rc):
