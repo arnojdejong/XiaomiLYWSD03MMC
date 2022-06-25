@@ -71,10 +71,10 @@ class HomeAssistant:
             logging.error("Unexpected disconnection: "+str(rc))
 
     def on_message(self, client, userdata, message):
-        # logging.debug("message received ", str(message.payload.decode("utf-8")))
-        # logging.debug("message topic=", message.topic)
-        # logging.debug("message qos=", message.qos)
-        # logging.debug("message retain flag=", message.retain)
+        logging.debug("message received= %s", str(message.payload.decode("utf-8")))
+        logging.debug("message topic= %s", message.topic)
+        logging.debug("message qos= %s", message.qos)
+        logging.debug("message retain flag=%s", message.retain)
 
         if message.topic == 'homeassistant/status':
             if message.payload == 'online':
