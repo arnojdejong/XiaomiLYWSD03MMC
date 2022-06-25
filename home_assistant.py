@@ -77,6 +77,7 @@ class HomeAssistant:
         logging.debug("message retain flag=%s", message.retain)
 
         if message.topic == 'homeassistant/status':
+            logging.debug('homeassistant/status')
             payload = str(message.payload.decode("utf-8"))
             if payload == 'online':
                 logging.debug("homeassistant online")
